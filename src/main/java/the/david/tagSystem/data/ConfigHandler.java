@@ -23,7 +23,6 @@ public class ConfigHandler{
 	String filePath;
 	private File dataConfigFile;
 	private FileConfiguration dataConfig;
-	public Map<String, String> defaults = new HashMap<>();
 
 	public void createCustomConfigFile(){
 		dataConfigFile = new File(Main.instance.getDataFolder(), filePath);
@@ -41,9 +40,6 @@ public class ConfigHandler{
 		}catch(IOException | InvalidConfigurationException e){
 			throw new RuntimeException(e);
 		}
-		defaults.forEach((k, v) -> {
-			dataConfig.set(k, v);
-		});
 		try{
 			dataConfig.save(dataConfigFile);
 		}catch(IOException e){
