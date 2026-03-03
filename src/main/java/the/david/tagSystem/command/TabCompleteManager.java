@@ -48,7 +48,7 @@ public class TabCompleteManager implements TabCompleter{
 			if(matches){
 				if(commandParts[args.length - 1].equals("{id}")){
 					for(Tag tag : TagManager.getTagCollection()){
-						matchList.add(tag.getId().toLowerCase());
+						matchList.add(tag.getId());
 					}
 				}
 				if(commandParts[args.length - 1].equals("{type}")){

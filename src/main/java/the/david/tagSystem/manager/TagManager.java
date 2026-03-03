@@ -7,12 +7,11 @@ import the.david.tagSystem.data.ConfigManager;
 import the.david.tagSystem.impl.Tag;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TagManager{
-	private static Map<String, Tag> tags = new HashMap<>();
+	private static final Map<String, Tag> tags = new HashMap<>();
+	private static final List<String> tagList = new ArrayList<>();
 
 	public TagManager(){
 
@@ -23,7 +22,8 @@ public class TagManager{
 		if(config.getKeys("tags") == null){
 			return;
 		}
-		tags = new HashMap<>();
+		tags.clear();
+		tagList.clear();
 		config.getKeys("tags").forEach(key -> {
 			String id = key;
 			String text = config.getString("tags." + key + ".text");
@@ -38,11 +38,13 @@ public class TagManager{
 				e.printStackTrace();
 			}
 			tags.put(id, tag);
+			tagList.add(id);
 		});
 	}
 
 	public static void addTag(Tag tag){
 		tags.put(tag.getId(), tag);
+		tagList.add(tag.getId());
 		ConfigManager.setTagToConfig(tag);
 	}
 
@@ -52,7 +54,11 @@ public class TagManager{
 	}
 
 	public static Collection<Tag> getAllTags(){
-		return tags.values();
+		List<Tag> tmp = new ArrayList<>();
+		tagList.forEach(k -> {
+			tmp.add(tags.get(k));
+		});
+		return tmp;
 	}
 
 	public static Collection<Tag> getTagCollection(){
