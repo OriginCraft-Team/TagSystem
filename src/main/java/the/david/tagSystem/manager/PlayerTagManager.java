@@ -94,4 +94,22 @@ public class PlayerTagManager{
 		String tagId = tagIdNode.getKey().replaceFirst("tagsystem.prefix.tagid.", "");
 		return TagManager.getTag(tagId);
 	}
+
+	public static void checkAndClearInvalidTags(Player player) {
+		Tag prefixTag = getPlayerPrefixTag(player);
+		if (prefixTag != null && !TagManager.hasTagPermission(player, prefixTag)) {
+			clearPlayerPrefixTag(player);
+			player.sendMessage(Component.text("您已失去前綴稱號 ", NamedTextColor.RED)
+					.append(LegacyComponentSerializer.legacy('&').deserialize(prefixTag.getText()))
+					.append(Component.text(" 的權限", NamedTextColor.RED)));
+		}
+
+		Tag suffixTag = getPlayerSuffixTag(player);
+		if (suffixTag != null && !TagManager.hasTagPermission(player, suffixTag)) {
+			clearPlayerSuffixTag(player);
+			player.sendMessage(Component.text("您已失去後綴稱號 ", NamedTextColor.RED)
+					.append(LegacyComponentSerializer.legacy('&').deserialize(suffixTag.getText()))
+					.append(Component.text(" 的權限", NamedTextColor.RED)));
+		}
+	}
 }

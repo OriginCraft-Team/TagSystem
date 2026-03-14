@@ -2,10 +2,12 @@ package the.david.tagSystem;
 
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import the.david.tagSystem.command.CommandManager;
 import the.david.tagSystem.command.TabCompleteManager;
 import the.david.tagSystem.data.ConfigManager;
+import the.david.tagSystem.manager.PlayerTagManager;
 import the.david.tagSystem.manager.TagManager;
 
 public final class Main extends JavaPlugin{
@@ -28,6 +30,13 @@ public final class Main extends JavaPlugin{
 		Bukkit.getPluginCommand("tagsystem").setTabCompleter(tabCompleteManager);
 		ConfigManager.loadConfigs();
 		TagManager.loadTags();
+
+		// Schedule tag permission check every minute (20 ticks * 60 seconds = 1200 ticks)
+		Bukkit.getScheduler().runTaskTimer(this, () -> {
+			for (Player player : Bukkit.getOnlinePlayers()) {
+				PlayerTagManager.checkAndClearInvalidTags(player);
+			}
+		}, 1200L, 1200L);
 	}
 
 	@Override

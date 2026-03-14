@@ -7,6 +7,7 @@ import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.github.stefvanschie.inventoryframework.pane.component.PagingButtons;
 import com.github.stefvanschie.inventoryframework.pane.util.Slot;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -116,7 +117,7 @@ public class MainGUI{
 								.append(
 										playerPrefixTag == null ?
 												Component.text("無", NamedTextColor.RED) :
-												LegacyComponentSerializer.legacy('&').deserialize(playerPrefixTag.getText())
+												LegacyComponentSerializer.legacy('&').deserialize(PlaceholderAPI.setPlaceholders(player, playerPrefixTag.getText()))
 								)
 								.decoration(TextDecoration.ITALIC, false)
 								.color(NamedTextColor.WHITE)
@@ -128,7 +129,7 @@ public class MainGUI{
 								.append(
 										playerSuffixTag == null ?
 												Component.text("無", NamedTextColor.RED) :
-												LegacyComponentSerializer.legacy('&').deserialize(playerSuffixTag.getText())
+												LegacyComponentSerializer.legacy('&').deserialize(PlaceholderAPI.setPlaceholders(player, playerSuffixTag.getText()))
 								)
 								.decoration(TextDecoration.ITALIC, false)
 								.color(NamedTextColor.WHITE)
@@ -148,11 +149,38 @@ public class MainGUI{
 			GuiItem guiItem;
 			if(TagManager.hasTagPermission(player, tag)){
 				ItemStack itemStack = tag.getIcon().clone();
+				ItemMeta meta = itemStack.getItemMeta();
+				if (meta != null) {
+					LegacyComponentSerializer serializer = LegacyComponentSerializer.legacy('&');
+					if (meta.hasDisplayName()) {
+						Component nameComponent = meta.displayName();
+						if (nameComponent != null) {
+							String displayName = serializer.serialize(nameComponent);
+							displayName = PlaceholderAPI.setPlaceholders(player, displayName);
+							meta.displayName(serializer.deserialize(displayName));
+						}
+					}
+					if (meta.hasLore()) {
+						List<Component> lore = meta.lore();
+						if (lore != null) {
+							List<Component> newLore = new ArrayList<>();
+							for (Component c : lore) {
+								String line = serializer.serialize(c);
+								line = PlaceholderAPI.setPlaceholders(player, line);
+								newLore.add(serializer.deserialize(line));
+							}
+							meta.lore(newLore);
+						}
+					}
+					itemStack.setItemMeta(meta);
+				}
 				itemStack.removeEnchantments();
 				if(playerPrefixTag != null){
 					if(playerPrefixTag.equals(tag)){
 						itemStack.editMeta(itemMeta -> {
-							itemMeta.displayName(itemMeta.displayName().append(Component.text(" (前綴使用中) ", NamedTextColor.GREEN)));
+							Component currentName = itemMeta.displayName();
+							if (currentName == null) currentName = Component.empty();
+							itemMeta.displayName(currentName.append(Component.text(" (前綴使用中) ", NamedTextColor.GREEN)));
 							itemMeta.addEnchant(Enchantment.INFINITY, 1, false);
 							itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 						});
@@ -161,7 +189,9 @@ public class MainGUI{
 				if(playerSuffixTag != null){
 					if(playerSuffixTag.equals(tag)){
 						itemStack.editMeta(itemMeta -> {
-							itemMeta.displayName(itemMeta.displayName().append(Component.text(" (後綴使用中) ", NamedTextColor.GREEN)));
+							Component currentName = itemMeta.displayName();
+							if (currentName == null) currentName = Component.empty();
+							itemMeta.displayName(currentName.append(Component.text(" (後綴使用中) ", NamedTextColor.GREEN)));
 							itemMeta.addEnchant(Enchantment.INFINITY, 1, false);
 							itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 						});
