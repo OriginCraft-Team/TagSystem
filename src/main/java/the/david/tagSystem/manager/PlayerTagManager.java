@@ -30,13 +30,13 @@ public class PlayerTagManager{
 		}
 		if(tag.getTagType().equals(Tag.TagType.SUFFIX)){
 			clearPlayerSuffixTag(player);
-			SuffixNode suffixNode = SuffixNode.builder(tag.getText(), 1).build();
+			SuffixNode suffixNode = SuffixNode.builder(tag.getLuckPermsText(), 1).build();
 			Node node = Node.builder("tagsystem.suffix.tagid." + tag.getId()).build();
 			user.data().add(suffixNode);
 			user.data().add(node);
 		}else if(tag.getTagType().equals(Tag.TagType.PREFIX)){
 			clearPlayerPrefixTag(player);
-			PrefixNode prefixNode = PrefixNode.builder(tag.getText(), 1).build();
+			PrefixNode prefixNode = PrefixNode.builder(tag.getLuckPermsText(), 1).build();
 			Node node = Node.builder("tagsystem.prefix.tagid." + tag.getId()).build();
 			user.data().add(prefixNode);
 			user.data().add(node);

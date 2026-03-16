@@ -33,7 +33,8 @@ public class TagManager{
 			String iconName = config.getString("tags." + key + ".icon");
 			Material iconMaterial = Material.matchMaterial(iconName);
 			if(iconMaterial == null) iconMaterial = Material.NAME_TAG;
-			Tag tag = new Tag(id, text, description, iconMaterial, tagType);
+			boolean hoverDescription = config.getBoolean("tags." + key + ".hover_description");
+			Tag tag = new Tag(id, text, description, iconMaterial, tagType, hoverDescription);
 			tags.put(id, tag);
 			tagList.add(id);
 		});

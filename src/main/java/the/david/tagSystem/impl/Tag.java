@@ -18,13 +18,15 @@ public class Tag{
 	private Material iconMaterial;
 	private ItemStack icon;
 	private TagType tagType;
+	private boolean hoverDescription;
 
-	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType){
+	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType, boolean hoverDescription){
 		this.id = id;
 		this.text = text;
 		this.description = description;
 		this.tagType = tagType;
 		this.iconMaterial = iconMaterial;
+		this.hoverDescription = hoverDescription;
 		rebuildIcon();
 	}
 
@@ -86,6 +88,26 @@ public class Tag{
 	}
 	public TagType getTagType(){
 		return tagType;
+	}
+
+	public boolean isHoverDescription(){
+		return hoverDescription;
+	}
+
+	public void setHoverDescription(boolean hoverDescription){
+		this.hoverDescription = hoverDescription;
+	}
+
+	/**
+	 * Returns the text to be used in LuckPerms prefix/suffix nodes.
+	 * If hoverDescription is enabled, wraps the text with a hover tag showing the description.
+	 */
+	public String getLuckPermsText(){
+		if(hoverDescription){
+			String hoverContent = getDescription().replace("\\n", "\n");
+			return "<hover:show_text:'" + hoverContent + "'>" + getText() + "</hover>";
+		}
+		return getText();
 	}
 
 	public enum TagType{

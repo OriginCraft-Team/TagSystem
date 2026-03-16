@@ -23,8 +23,7 @@ import the.david.tagSystem.impl.Tag;
 import the.david.tagSystem.manager.PlayerTagManager;
 import the.david.tagSystem.manager.TagManager;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MainGUI{
 	Main plugin;
@@ -34,241 +33,282 @@ public class MainGUI{
 
 	private static final MiniMessage mm = MiniMessage.miniMessage();
 
-	// --- Border glass items (gradient: corner → edge → inner) ---
-	private static GuiItem glass(Material mat){
+	// ── Filter enums ──
+	public enum TypeFilter{ ALL, PREFIX, SUFFIX }
+	public enum OwnerFilter{ ALL, OWNED, UNOWNED }
+
+	private static final Map<UUID, TypeFilter> typeFilters = new HashMap<>();
+	private static final Map<UUID, OwnerFilter> ownerFilters = new HashMap<>();
+
+	// ── Helpers ──
+	private static Component noItalic(String miniMessage){
+		return mm.deserialize(miniMessage).decoration(TextDecoration.ITALIC, false);
+	}
+
+	private static GuiItem filler(){
+		ItemStack item = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+		item.editMeta(m -> m.displayName(Component.empty()));
+		return new GuiItem(item, e -> e.setCancelled(true));
+	}
+
+	private static GuiItem decorGlass(Material mat){
 		ItemStack item = new ItemStack(mat);
 		item.editMeta(m -> m.displayName(Component.empty()));
 		return new GuiItem(item, e -> e.setCancelled(true));
 	}
 
-	private static final Material CORNER = Material.BLACK_STAINED_GLASS_PANE;
-	private static final Material EDGE = Material.GRAY_STAINED_GLASS_PANE;
-	private static final Material ACCENT = Material.CYAN_STAINED_GLASS_PANE;
-	private static final Material INNER = Material.LIGHT_BLUE_STAINED_GLASS_PANE;
+	// ── Entry point ──
+	public static void showGUI(Player player){
+		showGUI(player,
+				typeFilters.getOrDefault(player.getUniqueId(), TypeFilter.ALL),
+				ownerFilters.getOrDefault(player.getUniqueId(), OwnerFilter.ALL));
+	}
 
 	/*
-	 * Layout (6×9):
-	 *
-	 * Row 0:  CO  ED  AC  IN  [HEAD] IN  AC  ED  CO
-	 * Row 1:  ED  .   .   .   .      .   .   .   ED
-	 * Row 2:  AC  .   .   .   .      .   .   .   AC
-	 * Row 3:  AC  .   .   .   .      .   .   .   AC
-	 * Row 4:  ED  .   .   .   .      .   .   .   ED
-	 * Row 5:  CO  [◄] [P] ED  [★]   ED  [S] [►] CO
-	 *
-	 * CO=corner, ED=edge, AC=accent, IN=inner
-	 * [HEAD]=player skull, [◄►]=page, [P]=clear prefix, [S]=clear suffix, [★]=info
+	 * ┌──────────────────────────────────────────┐
+	 * │ BK  BK  GD  BK  HEAD  BK  GD  BK  BK   │  Row 0  Header
+	 * │ BK  .   .   .   .     .   .   .   BK   │  Row 1  Tags
+	 * │ BK  .   .   .   .     .   .   .   BK   │  Row 2  Tags
+	 * │ BK  .   .   .   .     .   .   .   BK   │  Row 3  Tags
+	 * │ BK  .   .   .   .     .   .   .   BK   │  Row 4  Tags
+	 * │ BK  ◄   CP  BK  ★    BK  CS  ►   BK   │  Row 5  Controls
+	 * └──────────────────────────────────────────┘
+	 * BK = black glass, GD = gold accent, ★ = filter
 	 */
+	public static void showGUI(Player player, TypeFilter typeFilter, OwnerFilter ownerFilter){
+		typeFilters.put(player.getUniqueId(), typeFilter);
+		ownerFilters.put(player.getUniqueId(), ownerFilter);
 
-	public static void showGUI(Player player){
 		ChestGui gui = new ChestGui(6, "✦ 稱號系統 ✦");
 
-		// ============ Background border ============
-		StaticPane border = new StaticPane(0, 0, 9, 6, Pane.Priority.LOWEST);
+		// ═══════════════ Background (全黑玻璃) ═══════════════
+		StaticPane bg = new StaticPane(0, 0, 9, 6, Pane.Priority.LOWEST);
+		for(int x = 0; x < 9; x++) bg.addItem(filler(), x, 0);   // top
+		for(int x = 0; x < 9; x++) bg.addItem(filler(), x, 5);   // bottom
+		for(int y = 1; y < 5; y++){ bg.addItem(filler(), 0, y); bg.addItem(filler(), 8, y); } // sides
+		gui.addPane(bg);
 
-		// Row 0: gradient top
-		Material[] topRow = {CORNER, EDGE, ACCENT, INNER, INNER, INNER, ACCENT, EDGE, CORNER};
-		for(int i = 0; i < 9; i++){
-			border.addItem(glass(topRow[i]), i, 0);
-		}
-		// Row 1 & 4: edge sides
-		border.addItem(glass(EDGE), 0, 1);
-		border.addItem(glass(EDGE), 8, 1);
-		border.addItem(glass(EDGE), 0, 4);
-		border.addItem(glass(EDGE), 8, 4);
-		// Row 2 & 3: accent sides
-		border.addItem(glass(ACCENT), 0, 2);
-		border.addItem(glass(ACCENT), 8, 2);
-		border.addItem(glass(ACCENT), 0, 3);
-		border.addItem(glass(ACCENT), 8, 3);
-		// Row 5: bottom bar
-		Material[] botRow = {CORNER, EDGE, EDGE, EDGE, EDGE, EDGE, EDGE, EDGE, CORNER};
-		for(int i = 0; i < 9; i++){
-			border.addItem(glass(botRow[i]), i, 5);
-		}
+		// ═══════════════ Decorative accents ═══════════════
+		StaticPane decor = new StaticPane(0, 0, 9, 6, Pane.Priority.NORMAL);
+		// Gold glass accents flanking head
+		decor.addItem(decorGlass(Material.ORANGE_STAINED_GLASS_PANE), 2, 0);
+		decor.addItem(decorGlass(Material.ORANGE_STAINED_GLASS_PANE), 6, 0);
+		gui.addPane(decor);
 
-		gui.addPane(border);
-
-		// ============ Control pane (row 0 center + row 5 buttons) ============
-		StaticPane controls = new StaticPane(0, 0, 9, 6, Pane.Priority.HIGH);
+		// ═══════════════ Controls ═══════════════
+		StaticPane ctrl = new StaticPane(0, 0, 9, 6, Pane.Priority.HIGH);
 
 		Tag playerPrefixTag = PlayerTagManager.getPlayerPrefixTag(player);
 		Tag playerSuffixTag = PlayerTagManager.getPlayerSuffixTag(player);
 
-		// --- Player head (center top) ---
+		// ─── Player Head ───
 		ItemStack headItem = new ItemStack(Material.PLAYER_HEAD);
 		SkullMeta skullMeta = (SkullMeta) headItem.getItemMeta();
 		skullMeta.setOwningPlayer(player);
 		headItem.setItemMeta(skullMeta);
 		headItem.editMeta(meta -> {
-			meta.displayName(mm.deserialize("<aqua><bold>✦ 我的稱號 ✦</bold></aqua>").decoration(TextDecoration.ITALIC, false));
+			meta.displayName(noItalic("<gradient:gold:yellow>✦ " + player.getName() + " 的稱號 ✦</gradient>"));
 			List<Component> lore = new ArrayList<>();
 			lore.add(Component.empty());
-			lore.add(mm.deserialize("<gray>━━━━━━━━━━━━━━━━━━</gray>").decoration(TextDecoration.ITALIC, false));
-			lore.add(Component.text()
-					.append(mm.deserialize("<gray>  🏷 </gray><gold>前綴: </gold>"))
-					.append(playerPrefixTag == null
-							? mm.deserialize("<dark_gray>— 未裝備</dark_gray>")
-							: mm.deserialize(PlaceholderAPI.setPlaceholders(player, playerPrefixTag.getText())))
-					.decoration(TextDecoration.ITALIC, false)
-					.build());
-			lore.add(Component.text()
-					.append(mm.deserialize("<gray>  🏷 </gray><gold>後綴: </gold>"))
-					.append(playerSuffixTag == null
-							? mm.deserialize("<dark_gray>— 未裝備</dark_gray>")
-							: mm.deserialize(PlaceholderAPI.setPlaceholders(player, playerSuffixTag.getText())))
-					.decoration(TextDecoration.ITALIC, false)
-					.build());
-			lore.add(mm.deserialize("<gray>━━━━━━━━━━━━━━━━━━</gray>").decoration(TextDecoration.ITALIC, false));
+			lore.add(Component.text().append(noItalic("<gold>  ▸ 前綴  </gold>")).append(
+					playerPrefixTag == null ? noItalic("<dark_gray>尚未裝備</dark_gray>")
+							: mm.deserialize(PlaceholderAPI.setPlaceholders(player, playerPrefixTag.getText()))
+			).decoration(TextDecoration.ITALIC, false).build());
+			lore.add(Component.text().append(noItalic("<gold>  ▸ 後綴  </gold>")).append(
+					playerSuffixTag == null ? noItalic("<dark_gray>尚未裝備</dark_gray>")
+							: mm.deserialize(PlaceholderAPI.setPlaceholders(player, playerSuffixTag.getText()))
+			).decoration(TextDecoration.ITALIC, false).build());
 			lore.add(Component.empty());
-			lore.add(mm.deserialize("<dark_gray>☛ 左鍵點擊下方稱號以裝備</dark_gray>").decoration(TextDecoration.ITALIC, false));
-			lore.add(mm.deserialize("<dark_gray>☛ 使用底部按鈕清除稱號</dark_gray>").decoration(TextDecoration.ITALIC, false));
+			lore.add(noItalic("<dark_gray>  ☛ 點擊稱號以裝備</dark_gray>"));
 			meta.lore(lore);
 		});
-		controls.addItem(new GuiItem(headItem, e -> e.setCancelled(true)), 4, 0);
+		ctrl.addItem(new GuiItem(headItem, e -> e.setCancelled(true)), 4, 0);
 
-		// --- Clear prefix button ---
-		ItemStack clearPrefixItem = new ItemStack(Material.HONEYCOMB);
-		clearPrefixItem.editMeta(meta -> {
-			meta.displayName(mm.deserialize("<red><bold>✘</bold> <red>清除前綴</red>").decoration(TextDecoration.ITALIC, false));
+		// ─── Clear Prefix ───
+		ItemStack clearPfx = new ItemStack(playerPrefixTag != null ? Material.LIME_DYE : Material.RED_DYE);
+		clearPfx.editMeta(meta -> {
+			meta.displayName(noItalic(playerPrefixTag != null
+					? "<green>✔ 清除前綴稱號</green>" : "<red>✘ 清除前綴稱號</red>"));
 			List<Component> lore = new ArrayList<>();
 			lore.add(Component.empty());
 			if(playerPrefixTag != null){
-				lore.add(Component.text()
-						.append(mm.deserialize("<gray>📌 目前: </gray>"))
+				lore.add(Component.text().append(noItalic("<gray>  目前 ▸ </gray>"))
 						.append(mm.deserialize(playerPrefixTag.getText()))
-						.decoration(TextDecoration.ITALIC, false)
-						.build());
+						.decoration(TextDecoration.ITALIC, false).build());
+				lore.add(Component.empty());
+				lore.add(noItalic("<yellow>  ⚡ 左鍵清除</yellow>"));
 			}else{
-				lore.add(mm.deserialize("<dark_gray>📌 目前無前綴稱號</dark_gray>").decoration(TextDecoration.ITALIC, false));
+				lore.add(noItalic("<dark_gray>  目前無前綴</dark_gray>"));
 			}
-			lore.add(Component.empty());
-			lore.add(mm.deserialize("<yellow>⚡ 點擊以清除</yellow>").decoration(TextDecoration.ITALIC, false));
 			meta.lore(lore);
 		});
-		controls.addItem(new GuiItem(clearPrefixItem, e -> {
+		ctrl.addItem(new GuiItem(clearPfx, e -> {
 			e.setCancelled(true);
 			Player p = (Player) e.getWhoClicked();
 			PlayerTagManager.clearPlayerPrefixTag(p);
-			p.sendMessage(mm.deserialize("<green>已清除前綴稱號</green>"));
+			p.sendMessage(noItalic("<green>✔ 已清除前綴稱號</green>"));
 			showGUI(p);
 		}), 2, 5);
 
-		// --- Clear suffix button ---
-		ItemStack clearSuffixItem = new ItemStack(Material.HONEYCOMB);
-		clearSuffixItem.editMeta(meta -> {
-			meta.displayName(mm.deserialize("<red><bold>✘</bold> <red>清除後綴</red>").decoration(TextDecoration.ITALIC, false));
+		// ─── Clear Suffix ───
+		ItemStack clearSfx = new ItemStack(playerSuffixTag != null ? Material.LIME_DYE : Material.RED_DYE);
+		clearSfx.editMeta(meta -> {
+			meta.displayName(noItalic(playerSuffixTag != null
+					? "<green>✔ 清除後綴稱號</green>" : "<red>✘ 清除後綴稱號</red>"));
 			List<Component> lore = new ArrayList<>();
 			lore.add(Component.empty());
 			if(playerSuffixTag != null){
-				lore.add(Component.text()
-						.append(mm.deserialize("<gray>📌 目前: </gray>"))
+				lore.add(Component.text().append(noItalic("<gray>  目前 ▸ </gray>"))
 						.append(mm.deserialize(playerSuffixTag.getText()))
-						.decoration(TextDecoration.ITALIC, false)
-						.build());
+						.decoration(TextDecoration.ITALIC, false).build());
+				lore.add(Component.empty());
+				lore.add(noItalic("<yellow>  ⚡ 左鍵清除</yellow>"));
 			}else{
-				lore.add(mm.deserialize("<dark_gray>📌 目前無後綴稱號</dark_gray>").decoration(TextDecoration.ITALIC, false));
+				lore.add(noItalic("<dark_gray>  目前無後綴</dark_gray>"));
 			}
-			lore.add(Component.empty());
-			lore.add(mm.deserialize("<yellow>⚡ 點擊以清除</yellow>").decoration(TextDecoration.ITALIC, false));
 			meta.lore(lore);
 		});
-		controls.addItem(new GuiItem(clearSuffixItem, e -> {
+		ctrl.addItem(new GuiItem(clearSfx, e -> {
 			e.setCancelled(true);
 			Player p = (Player) e.getWhoClicked();
 			PlayerTagManager.clearPlayerSuffixTag(p);
-			p.sendMessage(mm.deserialize("<green>已清除後綴稱號</green>"));
+			p.sendMessage(noItalic("<green>✔ 已清除後綴稱號</green>"));
 			showGUI(p);
 		}), 6, 5);
 
-		// --- Center decoration (bottom bar) ---
-		ItemStack starItem = new ItemStack(Material.NETHER_STAR);
-		starItem.editMeta(meta -> {
-			meta.displayName(mm.deserialize("<gradient:gold:yellow:gold>✦ 稱號系統 ✦</gradient>").decoration(TextDecoration.ITALIC, false));
-			meta.lore(List.of(
-					Component.empty(),
-					mm.deserialize("<gray>🌟 收集並展示你的專屬稱號！</gray>").decoration(TextDecoration.ITALIC, false),
-					mm.deserialize("<dark_gray>📦 共 " + TagManager.getAllTags().size() + " 個稱號</dark_gray>").decoration(TextDecoration.ITALIC, false)
-			));
+		// ─── Filter (烈焰粉末 — 比 Nether Star 更不突兀) ───
+		ItemStack filterItem = new ItemStack(Material.BLAZE_POWDER);
+		filterItem.editMeta(meta -> {
+			meta.displayName(noItalic("<gradient:gold:yellow>✦ 篩選與排序 ✦</gradient>"));
+			List<Component> lore = new ArrayList<>();
+			lore.add(Component.empty());
+
+			// Type filter — 用 ▶ 指示當前選擇
+			lore.add(noItalic("<gold> ┌ 類型</gold>"));
+			lore.add(noItalic(typeFilter == TypeFilter.ALL
+					? " <gold>│</gold> <white><bold>▶ 全部</bold></white>  <dark_gray>前綴  後綴</dark_gray>"
+					: typeFilter == TypeFilter.PREFIX
+					? " <gold>│</gold> <dark_gray>全部</dark_gray>  <aqua><bold>▶ 前綴</bold></aqua>  <dark_gray>後綴</dark_gray>"
+					: " <gold>│</gold> <dark_gray>全部  前綴</dark_gray>  <light_purple><bold>▶ 後綴</bold></light_purple>"));
+			lore.add(noItalic("<gold> │</gold>"));
+
+			// Owner filter
+			lore.add(noItalic("<gold> ├ 擁有</gold>"));
+			lore.add(noItalic(ownerFilter == OwnerFilter.ALL
+					? " <gold>│</gold> <white><bold>▶ 全部</bold></white>  <dark_gray>已擁有  未擁有</dark_gray>"
+					: ownerFilter == OwnerFilter.OWNED
+					? " <gold>│</gold> <dark_gray>全部</dark_gray>  <green><bold>▶ 已擁有</bold></green>  <dark_gray>未擁有</dark_gray>"
+					: " <gold>│</gold> <dark_gray>全部  已擁有</dark_gray>  <red><bold>▶ 未擁有</bold></red>"));
+			lore.add(noItalic("<gold> └━━━━━━━━━━━━━━━</gold>"));
+
+			lore.add(Component.empty());
+			lore.add(noItalic("<yellow>  ☛ 左鍵 </yellow><gray>切換類型</gray>"));
+			lore.add(noItalic("<yellow>  ☛ 右鍵 </yellow><gray>切換擁有</gray>"));
+			meta.lore(lore);
 		});
-		controls.addItem(new GuiItem(starItem, e -> e.setCancelled(true)), 4, 5);
+		ctrl.addItem(new GuiItem(filterItem, e -> {
+			e.setCancelled(true);
+			Player p = (Player) e.getWhoClicked();
+			if(e.isLeftClick()){
+				TypeFilter next = switch(typeFilter){
+					case ALL -> TypeFilter.PREFIX;
+					case PREFIX -> TypeFilter.SUFFIX;
+					case SUFFIX -> TypeFilter.ALL;
+				};
+				showGUI(p, next, ownerFilter);
+			}else if(e.isRightClick()){
+				OwnerFilter next = switch(ownerFilter){
+					case ALL -> OwnerFilter.OWNED;
+					case OWNED -> OwnerFilter.UNOWNED;
+					case UNOWNED -> OwnerFilter.ALL;
+				};
+				showGUI(p, typeFilter, next);
+			}
+		}), 4, 5);
 
-		gui.addPane(controls);
+		gui.addPane(ctrl);
 
-		// ============ Tag items (paginated, 7×4) ============
+		// ═══════════════ Tag items (7×4 paginated) ═══════════════
 		PaginatedPane tagPane = new PaginatedPane(1, 1, 7, 4);
 		List<GuiItem> tagItems = new ArrayList<>();
 
 		TagManager.getAllTags().forEach(tag -> {
+			if(typeFilter == TypeFilter.PREFIX && tag.getTagType() != Tag.TagType.PREFIX) return;
+			if(typeFilter == TypeFilter.SUFFIX && tag.getTagType() != Tag.TagType.SUFFIX) return;
+
+			boolean hasPermission = TagManager.hasTagPermission(player, tag);
+			if(ownerFilter == OwnerFilter.OWNED && !hasPermission) return;
+			if(ownerFilter == OwnerFilter.UNOWNED && hasPermission) return;
+
+			// Type badge
+			boolean isPrefix = tag.getTagType() == Tag.TagType.PREFIX;
+			String typeBadge = isPrefix
+					? "<aqua>▍</aqua><dark_gray> 前綴 ━ 名稱前方</dark_gray>"
+					: "<light_purple>▍</light_purple><dark_gray> 後綴 ━ 名稱後方</dark_gray>";
+
 			GuiItem guiItem;
-			if(TagManager.hasTagPermission(player, tag)){
+			if(hasPermission){
 				ItemStack itemStack = tag.getIcon().clone();
 				ItemMeta meta = itemStack.getItemMeta();
 				if(meta != null){
-					// Apply PAPI placeholders
+					// PAPI on display name
 					if(meta.hasDisplayName()){
-						Component nameComponent = meta.displayName();
-						if(nameComponent != null){
-							String displayName = mm.serialize(nameComponent);
-							displayName = PlaceholderAPI.setPlaceholders(player, displayName);
-							meta.displayName(mm.deserialize(displayName));
+						Component nameComp = meta.displayName();
+						if(nameComp != null){
+							String dn = mm.serialize(nameComp);
+							dn = PlaceholderAPI.setPlaceholders(player, dn);
+							meta.displayName(mm.deserialize(dn));
 						}
 					}
+					// Rebuild lore
+					List<Component> newLore = new ArrayList<>();
+					newLore.add(noItalic(typeBadge));
+					newLore.add(Component.empty());
 					if(meta.hasLore()){
-						List<Component> lore = meta.lore();
-						if(lore != null){
-							List<Component> newLore = new ArrayList<>();
-							for(Component c : lore){
+						List<Component> orig = meta.lore();
+						if(orig != null){
+							for(Component c : orig){
 								String line = mm.serialize(c);
 								line = PlaceholderAPI.setPlaceholders(player, line);
 								newLore.add(mm.deserialize(line));
 							}
-							meta.lore(newLore);
 						}
 					}
+					meta.lore(newLore);
 					itemStack.setItemMeta(meta);
 				}
 
-				// Mark active tags
-				boolean isActive = false;
-				String activeLabel = "";
-				if(playerPrefixTag != null && playerPrefixTag.equals(tag)){
-					isActive = true;
-					activeLabel = "<green> ✔ 前綴使用中</green>";
-				}else if(playerSuffixTag != null && playerSuffixTag.equals(tag)){
-					isActive = true;
-					activeLabel = "<green> ✔ 後綴使用中</green>";
-				}
+				// Active check
+				boolean isActive = (playerPrefixTag != null && playerPrefixTag.equals(tag))
+						|| (playerSuffixTag != null && playerSuffixTag.equals(tag));
 
 				if(isActive){
-					String label = activeLabel;
-					itemStack.editMeta(itemMeta -> {
-						Component currentName = itemMeta.displayName();
-						if(currentName == null) currentName = Component.empty();
-						itemMeta.displayName(currentName.append(mm.deserialize(label)));
+					itemStack.editMeta(im -> {
+						Component name = im.displayName();
+						if(name == null) name = Component.empty();
+						im.displayName(name.append(noItalic(" <green>✔</green>")));
 
-						// Add glow
-						itemMeta.addEnchant(Enchantment.INFINITY, 1, false);
-						itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+						im.addEnchant(Enchantment.INFINITY, 1, false);
+						im.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
-						// Append status to lore
-						List<Component> lore = itemMeta.lore();
+						List<Component> lore = im.lore();
 						if(lore == null) lore = new ArrayList<>();
 						lore.add(Component.empty());
-						lore.add(mm.deserialize("<green>━━━━━━━━━━━━━━━</green>").decoration(TextDecoration.ITALIC, false));
-						lore.add(mm.deserialize("<green><bold>  ✔ 已裝備</bold></green>").decoration(TextDecoration.ITALIC, false));
-						lore.add(mm.deserialize("<gray>  ☛ 點擊其他稱號以更換</gray>").decoration(TextDecoration.ITALIC, false));
-						itemMeta.lore(lore);
+						lore.add(noItalic("<green>┌──────────────┐</green>"));
+						lore.add(noItalic("<green>│  ✔  已裝備                    │</green>"));
+						lore.add(noItalic("<green>└──────────────┘</green>"));
+						lore.add(noItalic("<dark_gray>  ☛ 選擇其他稱號以更換</dark_gray>"));
+						im.lore(lore);
 					});
 				}else{
-					// Hint lore for unequipped
-					itemStack.editMeta(itemMeta -> {
-						List<Component> lore = itemMeta.lore();
+					itemStack.editMeta(im -> {
+						List<Component> lore = im.lore();
 						if(lore == null) lore = new ArrayList<>();
 						lore.add(Component.empty());
-						lore.add(mm.deserialize("<yellow>━━━━━━━━━━━━━━━</yellow>").decoration(TextDecoration.ITALIC, false));
-						lore.add(mm.deserialize("<yellow>  ☛ 點擊以裝備</yellow>").decoration(TextDecoration.ITALIC, false));
-						itemMeta.lore(lore);
+						lore.add(noItalic("<gold>┌──────────────┐</gold>"));
+						lore.add(noItalic("<gold>│</gold> <yellow>☛ 點擊裝備</yellow>                   <gold> │</gold>"));
+						lore.add(noItalic("<gold>└──────────────┘</gold>"));
+						im.lore(lore);
 					});
 				}
 
@@ -278,46 +318,43 @@ public class MainGUI{
 					showGUI(player);
 				});
 			}else{
-				// No permission — locked tag
-				ItemStack lockedItem = new ItemStack(Material.GRAY_DYE);
-				lockedItem.editMeta(itemMeta -> {
-					Component tagName = mm.deserialize(tag.getText());
-					itemMeta.displayName(Component.text()
-							.append(mm.deserialize("<dark_gray><strikethrough>"))
-							.append(tagName)
-							.append(mm.deserialize("</strikethrough></dark_gray>"))
-							.decoration(TextDecoration.ITALIC, false)
-							.build());
-					itemMeta.lore(List.of(
-							Component.empty(),
-							mm.deserialize("<red>━━━━━━━━━━━━━━━</red>").decoration(TextDecoration.ITALIC, false),
-							mm.deserialize("<red>  🔒 尚未解鎖</red>").decoration(TextDecoration.ITALIC, false),
-							mm.deserialize("<dark_gray>  需要權限: tagsystem.tag." + tag.getId() + "</dark_gray>").decoration(TextDecoration.ITALIC, false)
-					));
+				// Locked
+				ItemStack locked = new ItemStack(Material.GRAY_DYE);
+				locked.editMeta(im -> {
+					im.displayName(mm.deserialize(tag.getText()).decoration(TextDecoration.ITALIC, false));
+					List<Component> lore = new ArrayList<>();
+					lore.add(noItalic(typeBadge));
+					lore.add(Component.empty());
+					for(String line : tag.getDescription().split("\\n|\\\\n")){
+						lore.add(mm.deserialize(line).decoration(TextDecoration.ITALIC, false));
+					}
+					lore.add(Component.empty());
+					lore.add(noItalic("<red>┌──────────────┐</red>"));
+					lore.add(noItalic("<red>│  🔒 尚未解鎖                   │</red>"));
+					lore.add(noItalic("<red>└──────────────┘</red>"));
+					im.lore(lore);
 				});
-				guiItem = new GuiItem(lockedItem, e -> e.setCancelled(true));
+				guiItem = new GuiItem(locked, e -> e.setCancelled(true));
 			}
 			tagItems.add(guiItem);
 		});
 
 		tagPane.populateWithGuiItems(tagItems);
 
-		// ============ Paging buttons ============
+		// ═══════════════ Paging ═══════════════
 		PagingButtons pagingButtons = new PagingButtons(Slot.fromXY(1, 5), 7, Pane.Priority.HIGHEST, tagPane);
 
-		ItemStack backArrow = new ItemStack(Material.SPECTRAL_ARROW);
+		ItemStack backArrow = new ItemStack(Material.ARROW);
 		backArrow.editMeta(m -> {
-			m.displayName(mm.deserialize("<aqua><bold>◄</bold> <aqua>上一頁</aqua>").decoration(TextDecoration.ITALIC, false));
-			m.lore(List.of(mm.deserialize("<dark_gray>☛ 點擊翻頁</dark_gray>").decoration(TextDecoration.ITALIC, false)));
+			m.displayName(noItalic("<gold>◄ 上一頁</gold>"));
 		});
 		pagingButtons.setBackwardButton(new GuiItem(backArrow));
 
-		ItemStack forwardArrow = new ItemStack(Material.SPECTRAL_ARROW);
-		forwardArrow.editMeta(m -> {
-			m.displayName(mm.deserialize("<aqua>下一頁</aqua> <aqua><bold>►</bold>").decoration(TextDecoration.ITALIC, false));
-			m.lore(List.of(mm.deserialize("<dark_gray>☛ 點擊翻頁</dark_gray>").decoration(TextDecoration.ITALIC, false)));
+		ItemStack fwdArrow = new ItemStack(Material.ARROW);
+		fwdArrow.editMeta(m -> {
+			m.displayName(noItalic("<gold>下一頁 ►</gold>"));
 		});
-		pagingButtons.setForwardButton(new GuiItem(forwardArrow));
+		pagingButtons.setForwardButton(new GuiItem(fwdArrow));
 
 		gui.addPane(pagingButtons);
 		gui.addPane(tagPane);

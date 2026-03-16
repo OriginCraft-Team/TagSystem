@@ -5,9 +5,11 @@ tags:
     description: "<gold>✦ <yellow>尊貴 VIP 會員專屬稱號</yellow> <gold>✦</gold>\n<gray>▶ </gray><white>展現你的尊榮身份！</white>"
     icon: GOLDEN_APPLE
     type: PREFIX
+    hover_description: true
   # MiniMessage 演示稱號 - 彩虹漸層後綴
   rainbow:
     text: "<gradient:red:gold:green>[Rainbow]</gradient>"
     description: "<rainbow>✦ 彩虹漸層特效稱號 ✦</rainbow>\n<gray>▶ </gray><white>繽紛色彩，獨一無二！</white>"
     icon: NAME_TAG
     type: SUFFIX
+    hover_description: false

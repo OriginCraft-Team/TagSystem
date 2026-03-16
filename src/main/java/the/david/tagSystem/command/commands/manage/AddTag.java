@@ -27,9 +27,10 @@ public class AddTag implements SubCommand{
 		String id = parsedArgs.get("id");
 		String text = parsedArgs.get("text");
 		String description = parsedArgs.get("description");
+		boolean hoverDescription = Boolean.parseBoolean(parsedArgs.get("hover_description"));
 		Material iconMaterial = player.getInventory().getItemInMainHand().getType();
 		if(iconMaterial == Material.AIR) iconMaterial = Material.NAME_TAG;
-		Tag tag = new Tag(id, text, description, iconMaterial, tagType);
+		Tag tag = new Tag(id, text, description, iconMaterial, tagType, hoverDescription);
 		TagManager.addTag(tag);
 	}
 }

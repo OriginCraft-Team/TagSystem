@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class CommandManager implements CommandExecutor{
 	public CommandManager(){
-		subCommands.put("manage add {type} {id} {text} {description}", new AddTag());
+		subCommands.put("manage add {type} {id} {text} {description} {hover_description}", new AddTag());
 		subCommands.put("manage set icon {id}", new SetTagIcon());
 		subCommands.put("manage set text {id} {text}", new SetTagText());
 		subCommands.put("manage set description {id} {description}", new SetTagDescription());
