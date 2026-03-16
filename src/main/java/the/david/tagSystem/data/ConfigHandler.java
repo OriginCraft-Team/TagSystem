@@ -4,7 +4,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.ItemStack;
 import the.david.tagSystem.Main;
 
 import java.io.File;
@@ -28,10 +27,14 @@ public class ConfigHandler{
 		dataConfigFile = new File(Main.instance.getDataFolder(), filePath);
 		if(!dataConfigFile.exists()){
 			dataConfigFile.getParentFile().mkdirs();
-			try{
-				dataConfigFile.createNewFile();
-			}catch(IOException e){
-				throw new RuntimeException(e);
+			if(Main.instance.getResource(filePath) != null){
+				Main.instance.saveResource(filePath, false);
+			}else{
+				try{
+					dataConfigFile.createNewFile();
+				}catch(IOException e){
+					throw new RuntimeException(e);
+				}
 			}
 		}
 		dataConfig = new YamlConfiguration();
@@ -88,10 +91,6 @@ public class ConfigHandler{
 
 	public List<String> getStringList(String key){
 		return dataConfig.getStringList(key);
-	}
-
-	public ItemStack getItemStack(String key){
-		return dataConfig.getItemStack(key);
 	}
 
 	public boolean hasKey(String path){

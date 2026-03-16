@@ -1,5 +1,6 @@
 package the.david.tagSystem.command.commands.manage;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import the.david.tagSystem.command.SubCommand;
 import the.david.tagSystem.impl.Tag;
@@ -26,7 +27,9 @@ public class AddTag implements SubCommand{
 		String id = parsedArgs.get("id");
 		String text = parsedArgs.get("text");
 		String description = parsedArgs.get("description");
-		Tag tag = new Tag(id, text, description, tagType);
+		Material iconMaterial = player.getInventory().getItemInMainHand().getType();
+		if(iconMaterial == Material.AIR) iconMaterial = Material.NAME_TAG;
+		Tag tag = new Tag(id, text, description, iconMaterial, tagType);
 		TagManager.addTag(tag);
 	}
 }

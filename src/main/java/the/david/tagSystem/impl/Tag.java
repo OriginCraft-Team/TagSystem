@@ -2,7 +2,7 @@ package the.david.tagSystem.impl;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -15,42 +15,54 @@ public class Tag{
 	private final String id;
 	private String text;
 	private String description;
+	private Material iconMaterial;
 	private ItemStack icon;
 	private TagType tagType;
 
-	public Tag(String id, String text, String description, TagType tagType){
+	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType){
 		this.id = id;
 		this.text = text;
 		this.description = description;
 		this.tagType = tagType;
-		initializeIcon(new ItemStack(Material.NAME_TAG));
+		this.iconMaterial = iconMaterial;
+		rebuildIcon();
 	}
 
-	public void initializeIcon(@NotNull ItemStack icon){
-		icon.editMeta(itemMeta -> {
-			itemMeta.displayName(LegacyComponentSerializer.legacy('&').deserialize(getText()).decoration(TextDecoration.ITALIC, false));
+	public void setIconMaterial(@NotNull Material material){
+		this.iconMaterial = material;
+		rebuildIcon();
+	}
+
+	@NotNull
+	public Material getIconMaterial(){
+		return iconMaterial;
+	}
+
+	private void rebuildIcon(){
+		ItemStack item = new ItemStack(iconMaterial);
+		item.editMeta(itemMeta -> {
+			itemMeta.displayName(MiniMessage.miniMessage().deserialize(getText()).decoration(TextDecoration.ITALIC, false));
 			List<Component> descriptionLineList = new ArrayList<>();
-			for(String oneDescriptionLine : getDescription().split("\\\\n")){
-				descriptionLineList.add(LegacyComponentSerializer.legacy('&').deserialize(oneDescriptionLine).decoration(TextDecoration.ITALIC, false));
+			for(String oneDescriptionLine : getDescription().split("\\n|\\\\n")){
+				descriptionLineList.add(MiniMessage.miniMessage().deserialize(oneDescriptionLine).decoration(TextDecoration.ITALIC, false));
 				DebugOutputHandler.sendDebugOutput(oneDescriptionLine);
 			}
 			itemMeta.lore(descriptionLineList);
 		});
-		setIcon(icon);
+		this.icon = item;
 	}
 	public void setType(TagType tagType){
 		this.tagType = tagType;
 	}
-	public void setIcon(@NotNull ItemStack icon){
-		this.icon = icon;
-	}
 
 	public void setText(String text){
 		this.text = text;
+		rebuildIcon();
 	}
 
 	public void setDescription(String description){
 		this.description = description;
+		rebuildIcon();
 	}
 
 	@NotNull

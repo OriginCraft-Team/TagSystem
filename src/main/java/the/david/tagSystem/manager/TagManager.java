@@ -1,7 +1,7 @@
 package the.david.tagSystem.manager;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import the.david.tagSystem.data.ConfigHandler;
 import the.david.tagSystem.data.ConfigManager;
 import the.david.tagSystem.impl.Tag;
@@ -30,13 +30,10 @@ public class TagManager{
 			String description = config.getString("tags." + key + ".description");
 			String type = config.getString("tags." + key + ".type");
 			Tag.TagType tagType = Tag.TagType.valueOf(type);
-			Tag tag = new Tag(id, text, description, tagType);
-			try{
-				ItemStack itemStack = config.getItemStack("tags." + key + ".icon");
-				tag.setIcon(itemStack);
-			}catch(Exception e){
-				e.printStackTrace();
-			}
+			String iconName = config.getString("tags." + key + ".icon");
+			Material iconMaterial = Material.matchMaterial(iconName);
+			if(iconMaterial == null) iconMaterial = Material.NAME_TAG;
+			Tag tag = new Tag(id, text, description, iconMaterial, tagType);
 			tags.put(id, tag);
 			tagList.add(id);
 		});
@@ -67,11 +64,6 @@ public class TagManager{
 
 	public static boolean hasTagPermission(Player player, Tag tag){
 		return player.hasPermission("tagsystem.tag." + tag.getId());
-	}
-
-	public static void setTagIcon(Tag tag, ItemStack icon){
-		tag.initializeIcon(icon);
-		ConfigManager.setTagToConfig(tag);
 	}
 
 	public static void setTagText(Tag tag, String text){

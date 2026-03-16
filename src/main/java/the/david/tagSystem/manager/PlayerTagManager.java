@@ -2,7 +2,7 @@ package the.david.tagSystem.manager;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeType;
@@ -42,7 +42,7 @@ public class PlayerTagManager{
 			user.data().add(node);
 		}
 		luckPerms.getUserManager().saveUser(user);
-		player.sendMessage(Component.text("成功設定稱號為 ", NamedTextColor.GREEN).append(LegacyComponentSerializer.legacy('&').deserialize(tag.getText())));
+		player.sendMessage(Component.text("成功設定稱號為 ", NamedTextColor.GREEN).append(MiniMessage.miniMessage().deserialize(tag.getText())));
 	}
 
 	public static void clearPlayerSuffixTag(Player player){
@@ -100,7 +100,7 @@ public class PlayerTagManager{
 		if (prefixTag != null && !TagManager.hasTagPermission(player, prefixTag)) {
 			clearPlayerPrefixTag(player);
 			player.sendMessage(Component.text("您已失去前綴稱號 ", NamedTextColor.RED)
-					.append(LegacyComponentSerializer.legacy('&').deserialize(prefixTag.getText()))
+					.append(MiniMessage.miniMessage().deserialize(prefixTag.getText()))
 					.append(Component.text(" 的權限", NamedTextColor.RED)));
 		}
 
@@ -108,7 +108,7 @@ public class PlayerTagManager{
 		if (suffixTag != null && !TagManager.hasTagPermission(player, suffixTag)) {
 			clearPlayerSuffixTag(player);
 			player.sendMessage(Component.text("您已失去後綴稱號 ", NamedTextColor.RED)
-					.append(LegacyComponentSerializer.legacy('&').deserialize(suffixTag.getText()))
+					.append(MiniMessage.miniMessage().deserialize(suffixTag.getText()))
 					.append(Component.text(" 的權限", NamedTextColor.RED)));
 		}
 	}

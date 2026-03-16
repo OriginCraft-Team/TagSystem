@@ -12,8 +12,8 @@ public class ConfigManager{
 	public static void setTagToConfig(Tag tag){
 		tagConfig.setObject("tags." + tag.getId() + ".text", tag.getText());
 		tagConfig.setObject("tags." + tag.getId() + ".description", tag.getDescription());
-		tagConfig.setObject("tags." + tag.getId() + ".icon", tag.getIcon());
 		tagConfig.setObject("tags." + tag.getId() + ".type", tag.getTagType().toString());
+		tagConfig.setObject("tags." + tag.getId() + ".icon", tag.getIconMaterial().name());
 		tagConfig.saveFile();
 	}
 }

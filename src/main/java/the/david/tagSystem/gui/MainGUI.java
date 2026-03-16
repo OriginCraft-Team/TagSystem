@@ -11,7 +11,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -117,7 +117,7 @@ public class MainGUI{
 								.append(
 										playerPrefixTag == null ?
 												Component.text("無", NamedTextColor.RED) :
-												LegacyComponentSerializer.legacy('&').deserialize(PlaceholderAPI.setPlaceholders(player, playerPrefixTag.getText()))
+												MiniMessage.miniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, playerPrefixTag.getText()))
 								)
 								.decoration(TextDecoration.ITALIC, false)
 								.color(NamedTextColor.WHITE)
@@ -129,7 +129,7 @@ public class MainGUI{
 								.append(
 										playerSuffixTag == null ?
 												Component.text("無", NamedTextColor.RED) :
-												LegacyComponentSerializer.legacy('&').deserialize(PlaceholderAPI.setPlaceholders(player, playerSuffixTag.getText()))
+												MiniMessage.miniMessage().deserialize(PlaceholderAPI.setPlaceholders(player, playerSuffixTag.getText()))
 								)
 								.decoration(TextDecoration.ITALIC, false)
 								.color(NamedTextColor.WHITE)
@@ -151,13 +151,13 @@ public class MainGUI{
 				ItemStack itemStack = tag.getIcon().clone();
 				ItemMeta meta = itemStack.getItemMeta();
 				if (meta != null) {
-					LegacyComponentSerializer serializer = LegacyComponentSerializer.legacy('&');
+					MiniMessage mm = MiniMessage.miniMessage();
 					if (meta.hasDisplayName()) {
 						Component nameComponent = meta.displayName();
 						if (nameComponent != null) {
-							String displayName = serializer.serialize(nameComponent);
+							String displayName = mm.serialize(nameComponent);
 							displayName = PlaceholderAPI.setPlaceholders(player, displayName);
-							meta.displayName(serializer.deserialize(displayName));
+							meta.displayName(mm.deserialize(displayName));
 						}
 					}
 					if (meta.hasLore()) {
@@ -165,9 +165,9 @@ public class MainGUI{
 						if (lore != null) {
 							List<Component> newLore = new ArrayList<>();
 							for (Component c : lore) {
-								String line = serializer.serialize(c);
+								String line = mm.serialize(c);
 								line = PlaceholderAPI.setPlaceholders(player, line);
-								newLore.add(serializer.deserialize(line));
+								newLore.add(mm.deserialize(line));
 							}
 							meta.lore(newLore);
 						}
