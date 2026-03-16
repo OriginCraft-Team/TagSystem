@@ -6,8 +6,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeType;
-import net.luckperms.api.node.types.PrefixNode;
-import net.luckperms.api.node.types.SuffixNode;
 import org.bukkit.entity.Player;
 import the.david.tagSystem.impl.Tag;
 
@@ -27,15 +25,11 @@ public class PlayerTagManager{
 		if(tag.getTagType().equals(Tag.TagType.SUFFIX)){
 			luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
 				user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
-				user.data().clear(e -> e.getType() == NodeType.SUFFIX);
-				user.data().add(SuffixNode.builder(tag.getLuckPermsText(), 1).build());
 				user.data().add(Node.builder("tagsystem.suffix.tagid." + tag.getId()).build());
 			});
 		}else if(tag.getTagType().equals(Tag.TagType.PREFIX)){
 			luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
 				user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid"));
-				user.data().clear(e -> e.getType() == NodeType.PREFIX);
-				user.data().add(PrefixNode.builder(tag.getLuckPermsText(), 1).build());
 				user.data().add(Node.builder("tagsystem.prefix.tagid." + tag.getId()).build());
 			});
 		}
@@ -43,16 +37,12 @@ public class PlayerTagManager{
 	}
 
 	public static void clearPlayerSuffixTag(Player player){
-		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
-			user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
-			user.data().clear(e -> e.getType() == NodeType.SUFFIX);
-		});
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user ->
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid")));
 	}
 	public static void clearPlayerPrefixTag(Player player){
-		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
-			user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid"));
-			user.data().clear(e -> e.getType() == NodeType.PREFIX);
-		});
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user ->
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid")));
 	}
 
 	public static Tag getPlayerSuffixTag(Player player){

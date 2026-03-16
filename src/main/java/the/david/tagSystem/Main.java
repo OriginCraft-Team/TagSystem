@@ -9,6 +9,7 @@ import the.david.tagSystem.command.TabCompleteManager;
 import the.david.tagSystem.data.ConfigManager;
 import the.david.tagSystem.manager.PlayerTagManager;
 import the.david.tagSystem.manager.TagManager;
+import the.david.tagSystem.placeholder.TagSystemExpansion;
 
 public final class Main extends JavaPlugin{
 	public CommandManager commandManager;
@@ -30,6 +31,10 @@ public final class Main extends JavaPlugin{
 		Bukkit.getPluginCommand("tagsystem").setTabCompleter(tabCompleteManager);
 		ConfigManager.loadConfigs();
 		TagManager.loadTags();
+
+		if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+			new TagSystemExpansion().register();
+		}
 
 		// Schedule tag permission check every minute (20 ticks * 60 seconds = 1200 ticks)
 		Bukkit.getScheduler().runTaskTimer(this, () -> {

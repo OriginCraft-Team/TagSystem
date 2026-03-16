@@ -98,18 +98,6 @@ public class Tag{
 		this.hoverDescription = hoverDescription;
 	}
 
-	/**
-	 * Returns the text to be used in LuckPerms prefix/suffix nodes.
-	 * If hoverDescription is enabled, wraps the text with a hover tag showing the description.
-	 */
-	public String getLuckPermsText(){
-		if(hoverDescription){
-			String hoverContent = getDescription().replace("\\n", "<br>");
-			return "<hover:show_text:'" + hoverContent + "'>" + getText() + "</hover>";
-		}
-		return getText();
-	}
-
 	public enum TagType{
 		SUFFIX,
 		PREFIX
