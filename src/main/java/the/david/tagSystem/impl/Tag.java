@@ -104,7 +104,7 @@ public class Tag{
 	 */
 	public String getLuckPermsText(){
 		if(hoverDescription){
-			String hoverContent = getDescription().replace("\\n", "\n");
+			String hoverContent = getDescription().replace("\\n", "<br>");
 			return "<hover:show_text:'" + hoverContent + "'>" + getText() + "</hover>";
 		}
 		return getText();

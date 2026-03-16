@@ -24,38 +24,35 @@ public class PlayerTagManager{
 			player.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED));
 			return;
 		}
-		User user = luckPerms.getUserManager().getUser(player.getUniqueId());
-		if(user == null){
-			return;
-		}
 		if(tag.getTagType().equals(Tag.TagType.SUFFIX)){
-			clearPlayerSuffixTag(player);
-			SuffixNode suffixNode = SuffixNode.builder(tag.getLuckPermsText(), 1).build();
-			Node node = Node.builder("tagsystem.suffix.tagid." + tag.getId()).build();
-			user.data().add(suffixNode);
-			user.data().add(node);
+			luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+				user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
+				user.data().clear(e -> e.getType() == NodeType.SUFFIX);
+				user.data().add(SuffixNode.builder(tag.getLuckPermsText(), 1).build());
+				user.data().add(Node.builder("tagsystem.suffix.tagid." + tag.getId()).build());
+			});
 		}else if(tag.getTagType().equals(Tag.TagType.PREFIX)){
-			clearPlayerPrefixTag(player);
-			PrefixNode prefixNode = PrefixNode.builder(tag.getLuckPermsText(), 1).build();
-			Node node = Node.builder("tagsystem.prefix.tagid." + tag.getId()).build();
-			user.data().add(prefixNode);
-			user.data().add(node);
+			luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+				user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid"));
+				user.data().clear(e -> e.getType() == NodeType.PREFIX);
+				user.data().add(PrefixNode.builder(tag.getLuckPermsText(), 1).build());
+				user.data().add(Node.builder("tagsystem.prefix.tagid." + tag.getId()).build());
+			});
 		}
-		luckPerms.getUserManager().saveUser(user);
 		player.sendMessage(Component.text("成功設定稱號為 ", NamedTextColor.GREEN).append(MiniMessage.miniMessage().deserialize(tag.getText())));
 	}
 
 	public static void clearPlayerSuffixTag(Player player){
-		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-		user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
-		user.data().clear(e -> e.getType() == NodeType.SUFFIX);
-		luckPerms.getUserManager().saveUser(user);
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
+			user.data().clear(e -> e.getType() == NodeType.SUFFIX);
+		});
 	}
 	public static void clearPlayerPrefixTag(Player player){
-		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-		user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid"));
-		user.data().clear(e -> e.getType() == NodeType.PREFIX);
-		luckPerms.getUserManager().saveUser(user);
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid"));
+			user.data().clear(e -> e.getType() == NodeType.PREFIX);
+		});
 	}
 
 	public static Tag getPlayerSuffixTag(Player player){
