@@ -19,14 +19,16 @@ public class Tag{
 	private ItemStack icon;
 	private TagType tagType;
 	private boolean hoverDescription;
+	private boolean showInGui;
 
-	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType, boolean hoverDescription){
+	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType, boolean hoverDescription, boolean showInGui){
 		this.id = id;
 		this.text = text;
 		this.description = description;
 		this.tagType = tagType;
 		this.iconMaterial = iconMaterial;
 		this.hoverDescription = hoverDescription;
+		this.showInGui = showInGui;
 		rebuildIcon();
 	}
 
@@ -53,10 +55,6 @@ public class Tag{
 		});
 		this.icon = item;
 	}
-	public void setType(TagType tagType){
-		this.tagType = tagType;
-	}
-
 	public void setText(String text){
 		this.text = text;
 		rebuildIcon();
@@ -94,8 +92,8 @@ public class Tag{
 		return hoverDescription;
 	}
 
-	public void setHoverDescription(boolean hoverDescription){
-		this.hoverDescription = hoverDescription;
+	public boolean isShowInGui(){
+		return showInGui;
 	}
 
 	public enum TagType{

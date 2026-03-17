@@ -12,11 +12,6 @@ import java.util.*;
 public class TagManager{
 	private static final Map<String, Tag> tags = new HashMap<>();
 	private static final List<String> tagList = new ArrayList<>();
-
-	public TagManager(){
-
-	}
-
 	public static void loadTags(){
 		ConfigHandler config = ConfigManager.tagConfig;
 		if(config.getKeys("tags") == null){
@@ -25,7 +20,6 @@ public class TagManager{
 		tags.clear();
 		tagList.clear();
 		config.getKeys("tags").forEach(key -> {
-			String id = key;
 			String text = config.getString("tags." + key + ".text");
 			String description = config.getString("tags." + key + ".description");
 			String type = config.getString("tags." + key + ".type");
@@ -34,9 +28,10 @@ public class TagManager{
 			Material iconMaterial = Material.matchMaterial(iconName);
 			if(iconMaterial == null) iconMaterial = Material.NAME_TAG;
 			boolean hoverDescription = config.getBoolean("tags." + key + ".hover_description");
-			Tag tag = new Tag(id, text, description, iconMaterial, tagType, hoverDescription);
-			tags.put(id, tag);
-			tagList.add(id);
+			boolean showInGui = config.getBoolean("tags." + key + ".show_in_gui");
+			Tag tag = new Tag(key, text, description, iconMaterial, tagType, hoverDescription, showInGui);
+			tags.put(key, tag);
+			tagList.add(key);
 		});
 	}
 

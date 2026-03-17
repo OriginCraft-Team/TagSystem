@@ -6,6 +6,7 @@ tags:
     icon: GOLDEN_APPLE
     type: PREFIX
     hover_description: true
+    show_in_gui: true
   # MiniMessage 演示稱號 - 彩虹漸層後綴
   rainbow:
     text: "<gradient:red:gold:green>[Rainbow]</gradient>"
@@ -13,3 +14,4 @@ tags:
     icon: NAME_TAG
     type: SUFFIX
     hover_description: false
+    show_in_gui: true

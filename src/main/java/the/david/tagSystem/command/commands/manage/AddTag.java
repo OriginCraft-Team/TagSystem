@@ -30,7 +30,7 @@ public class AddTag implements SubCommand{
 		boolean hoverDescription = Boolean.parseBoolean(parsedArgs.get("hover_description"));
 		Material iconMaterial = player.getInventory().getItemInMainHand().getType();
 		if(iconMaterial == Material.AIR) iconMaterial = Material.NAME_TAG;
-		Tag tag = new Tag(id, text, description, iconMaterial, tagType, hoverDescription);
+		Tag tag = new Tag(id, text, description, iconMaterial, tagType, hoverDescription, true);
 		TagManager.addTag(tag);
 	}
 }

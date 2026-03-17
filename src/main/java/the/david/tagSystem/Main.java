@@ -14,7 +14,6 @@ import the.david.tagSystem.placeholder.TagSystemExpansion;
 public final class Main extends JavaPlugin{
 	public CommandManager commandManager;
 	public TabCompleteManager tabCompleteManager;
-	public TagManager tagManager;
 	public static JavaPlugin instance;
 	public static Main plugin;
 	public static LuckPerms luckPerms;

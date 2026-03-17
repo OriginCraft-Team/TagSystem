@@ -5,18 +5,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
-import net.luckperms.api.node.NodeType;
+import net.luckperms.api.query.QueryOptions;
 import org.bukkit.entity.Player;
 import the.david.tagSystem.impl.Tag;
 
-import java.util.Collection;
+import java.util.Optional;
 
 import static the.david.tagSystem.Main.luckPerms;
 
 public class PlayerTagManager{
-	public PlayerTagManager(){
-
-	}
 	public static void setPlayerTag(Player player, Tag tag){
 		if(!TagManager.hasTagPermission(player, tag)){
 			player.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED));
@@ -47,52 +44,47 @@ public class PlayerTagManager{
 
 	public static Tag getPlayerSuffixTag(Player player){
 		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-		Collection<Node> nodes = user.getNodes();
-		Node tagIdNode = null;
-		for(Node node : nodes){
-			if(!node.getKey().startsWith("tagsystem.suffix.tagid")){
-				continue;
-			}
-			if(!node.getType().equals(NodeType.SUFFIX)){
-				tagIdNode = node;
-			}
-		}
-		if(tagIdNode == null){
-			return null;
-		}
-		String tagId = tagIdNode.getKey().replaceFirst("tagsystem.suffix.tagid.", "");
-		return TagManager.getTag(tagId);
+		return user.getNodes().stream()
+				.filter(n -> n.getKey().startsWith("tagsystem.suffix.tagid."))
+				.findFirst()
+				.map(n -> TagManager.getTag(n.getKey().replaceFirst("tagsystem\\.suffix\\.tagid\\.", "")))
+				.orElse(null);
 	}
+
 	public static Tag getPlayerPrefixTag(Player player){
 		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-		Collection<Node> nodes = user.getNodes();
-		Node tagIdNode = null;
-		for(Node node : nodes){
-			if(!node.getKey().startsWith("tagsystem.prefix.tagid")){
-				continue;
-			}
-			if(!node.getType().equals(NodeType.PREFIX)){
-				tagIdNode = node;
-			}
+		Optional<Node> ownNode = user.getNodes().stream()
+				.filter(n -> n.getKey().startsWith("tagsystem.prefix.tagid."))
+				.findFirst();
+		if(ownNode.isPresent()){
+			return TagManager.getTag(ownNode.get().getKey().replaceFirst("tagsystem\\.prefix\\.tagid\\.", ""));
 		}
-		if(tagIdNode == null){
-			return null;
-		}
-		String tagId = tagIdNode.getKey().replaceFirst("tagsystem.prefix.tagid.", "");
-		return TagManager.getTag(tagId);
+		return user.resolveInheritedNodes(QueryOptions.nonContextual()).stream()
+				.filter(n -> n.getKey().startsWith("tagsystem.prefix.tagid."))
+				.findFirst()
+				.map(n -> TagManager.getTag(n.getKey().replaceFirst("tagsystem\\.prefix\\.tagid\\.", "")))
+				.orElse(null);
 	}
 
 	public static void checkAndClearInvalidTags(Player player) {
-		Tag prefixTag = getPlayerPrefixTag(player);
-		if (prefixTag != null && !TagManager.hasTagPermission(player, prefixTag)) {
-			clearPlayerPrefixTag(player);
-			player.sendMessage(Component.text("您已失去前綴稱號 ", NamedTextColor.RED)
-					.append(MiniMessage.miniMessage().deserialize(prefixTag.getText()))
-					.append(Component.text(" 的權限", NamedTextColor.RED)));
+		User lpUser = luckPerms.getPlayerAdapter(Player.class).getUser(player);
+
+		Optional<Node> ownPrefixNode = lpUser.getNodes().stream()
+				.filter(n -> n.getKey().startsWith("tagsystem.prefix.tagid."))
+				.findFirst();
+		if(ownPrefixNode.isPresent()){
+			Tag prefixTag = TagManager.getTag(ownPrefixNode.get().getKey().replaceFirst("tagsystem\\.prefix\\.tagid\\.", ""));
+			if(prefixTag != null && !TagManager.hasTagPermission(player, prefixTag)){
+				luckPerms.getUserManager().modifyUser(player.getUniqueId(), user ->
+					user.data().clear(e -> e.getKey().startsWith("tagsystem.prefix.tagid")));
+				player.sendMessage(Component.text("您已失去前綴稱號 ", NamedTextColor.RED)
+						.append(MiniMessage.miniMessage().deserialize(prefixTag.getText()))
+						.append(Component.text(" 的權限", NamedTextColor.RED)));
+			}
 		}
 
 		Tag suffixTag = getPlayerSuffixTag(player);
-		if (suffixTag != null && !TagManager.hasTagPermission(player, suffixTag)) {
+		if(suffixTag != null && !TagManager.hasTagPermission(player, suffixTag)){
 			clearPlayerSuffixTag(player);
 			player.sendMessage(Component.text("您已失去後綴稱號 ", NamedTextColor.RED)
 					.append(MiniMessage.miniMessage().deserialize(suffixTag.getText()))

@@ -11,6 +11,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -26,11 +27,6 @@ import the.david.tagSystem.manager.TagManager;
 import java.util.*;
 
 public class MainGUI{
-	Main plugin;
-	public MainGUI(Main plugin){
-		this.plugin = plugin;
-	}
-
 	private static final MiniMessage mm = MiniMessage.miniMessage();
 
 	// ── Filter enums ──
@@ -125,18 +121,27 @@ public class MainGUI{
 		ctrl.addItem(new GuiItem(headItem, e -> e.setCancelled(true)), 4, 0);
 
 		// ─── Clear Prefix ───
-		ItemStack clearPfx = new ItemStack(playerPrefixTag != null ? Material.LIME_DYE : Material.RED_DYE);
+		boolean hasOwnPrefixNode = Main.luckPerms.getPlayerAdapter(Player.class).getUser(player)
+				.getNodes().stream().anyMatch(n -> n.getKey().startsWith("tagsystem.prefix.tagid."));
+		ItemStack clearPfx = new ItemStack(hasOwnPrefixNode ? Material.LIME_DYE : Material.RED_DYE);
 		clearPfx.editMeta(meta -> {
-			meta.displayName(noItalic(playerPrefixTag != null
-					? "<green>✔ 清除前綴稱號</green>" : "<red>✘ 清除前綴稱號</red>"));
+			meta.displayName(noItalic(hasOwnPrefixNode
+					? "<green>✔ 清除前綴稱號</green>"
+					: "<red>✘ 清除前綴稱號</red>"));
 			List<Component> lore = new ArrayList<>();
 			lore.add(Component.empty());
 			if(playerPrefixTag != null){
-				lore.add(Component.text().append(noItalic("<gray>  目前 ▸ </gray>"))
+				Component currentLine = Component.text().append(noItalic("<gray>  目前 ▸ </gray>"))
 						.append(mm.deserialize(playerPrefixTag.getText()))
-						.decoration(TextDecoration.ITALIC, false).build());
-				lore.add(Component.empty());
-				lore.add(noItalic("<yellow>  ⚡ 左鍵清除</yellow>"));
+						.decoration(TextDecoration.ITALIC, false).build();
+				if(!hasOwnPrefixNode){
+					currentLine = currentLine.append(noItalic("<dark_gray> (預設稱號)</dark_gray>"));
+				}
+				lore.add(currentLine);
+				if(hasOwnPrefixNode){
+					lore.add(Component.empty());
+					lore.add(noItalic("<yellow>  ⚡ 左鍵清除</yellow>"));
+				}
 			}else{
 				lore.add(noItalic("<dark_gray>  目前無前綴</dark_gray>"));
 			}
@@ -147,7 +152,7 @@ public class MainGUI{
 			Player p = (Player) e.getWhoClicked();
 			PlayerTagManager.clearPlayerPrefixTag(p);
 			p.sendMessage(noItalic("<green>✔ 已清除前綴稱號</green>"));
-			showGUI(p);
+			Bukkit.getScheduler().runTaskLater(Main.plugin, () -> showGUI(p), 1L);
 		}), 2, 5);
 
 		// ─── Clear Suffix ───
@@ -173,7 +178,7 @@ public class MainGUI{
 			Player p = (Player) e.getWhoClicked();
 			PlayerTagManager.clearPlayerSuffixTag(p);
 			p.sendMessage(noItalic("<green>✔ 已清除後綴稱號</green>"));
-			showGUI(p);
+			Bukkit.getScheduler().runTaskLater(Main.plugin, () -> showGUI(p), 1L);
 		}), 6, 5);
 
 		// ─── Filter (烈焰粉末 — 比 Nether Star 更不突兀) ───
@@ -233,6 +238,7 @@ public class MainGUI{
 		List<GuiItem> tagItems = new ArrayList<>();
 
 		TagManager.getAllTags().forEach(tag -> {
+			if(!tag.isShowInGui()) return;
 			if(typeFilter == TypeFilter.PREFIX && tag.getTagType() != Tag.TagType.PREFIX) return;
 			if(typeFilter == TypeFilter.SUFFIX && tag.getTagType() != Tag.TagType.SUFFIX) return;
 
@@ -315,7 +321,7 @@ public class MainGUI{
 				guiItem = new GuiItem(itemStack, e -> {
 					e.setCancelled(true);
 					PlayerTagManager.setPlayerTag(player, tag);
-					showGUI(player);
+					Bukkit.getScheduler().runTaskLater(Main.plugin, () -> showGUI(player), 1L);
 				});
 			}else{
 				// Locked

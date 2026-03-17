@@ -15,6 +15,7 @@ public class ConfigManager{
 		tagConfig.setObject("tags." + tag.getId() + ".type", tag.getTagType().toString());
 		tagConfig.setObject("tags." + tag.getId() + ".icon", tag.getIconMaterial().name());
 		tagConfig.setObject("tags." + tag.getId() + ".hover_description", tag.isHoverDescription());
+		tagConfig.setObject("tags." + tag.getId() + ".show_in_gui", tag.isShowInGui());
 		tagConfig.saveFile();
 	}
 }
