@@ -10,6 +10,7 @@ import the.david.tagSystem.command.commands.manage.AddTag;
 import the.david.tagSystem.command.commands.manage.SetTagDescription;
 import the.david.tagSystem.command.commands.manage.SetTagIcon;
 import the.david.tagSystem.command.commands.manage.SetTagText;
+import the.david.tagSystem.command.commands.manage.SetTagWeight;
 import the.david.tagSystem.impl.Pair;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public class CommandManager implements CommandExecutor{
 		subCommands.put("manage set icon {id}", new SetTagIcon());
 		subCommands.put("manage set text {id} {text}", new SetTagText());
 		subCommands.put("manage set description {id} {description}", new SetTagDescription());
+		subCommands.put("manage set weight {id} {value}", new SetTagWeight());
 		subCommands.put("set {id}", new SetTag());
 		subCommands.put("reload", new Reload());
 		subCommands.put("menu", new Menu());

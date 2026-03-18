@@ -29,7 +29,8 @@ public class TagManager{
 			if(iconMaterial == null) iconMaterial = Material.NAME_TAG;
 			boolean hoverDescription = config.getBoolean("tags." + key + ".hover_description");
 			boolean showInGui = config.getBoolean("tags." + key + ".show_in_gui");
-			Tag tag = new Tag(key, text, description, iconMaterial, tagType, hoverDescription, showInGui);
+			int weight = config.getInteger("tags." + key + ".weight", 0);
+			Tag tag = new Tag(key, text, description, iconMaterial, tagType, hoverDescription, showInGui, weight);
 			tags.put(key, tag);
 			tagList.add(key);
 		});
@@ -69,6 +70,11 @@ public class TagManager{
 
 	public static void setTagDescription(Tag tag, String text){
 		tag.setDescription(text);
+		ConfigManager.setTagToConfig(tag);
+	}
+
+	public static void setTagWeight(Tag tag, int weight){
+		tag.setWeight(weight);
 		ConfigManager.setTagToConfig(tag);
 	}
 }

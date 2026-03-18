@@ -7,6 +7,7 @@ tags:
     type: PREFIX
     hover_description: true
     show_in_gui: true
+    weight: 100
   # MiniMessage 演示稱號 - 彩虹漸層後綴
   rainbow:
     text: "<gradient:red:gold:green>[Rainbow]</gradient>"
@@ -15,3 +16,4 @@ tags:
     type: SUFFIX
     hover_description: false
     show_in_gui: true
+    weight: 0

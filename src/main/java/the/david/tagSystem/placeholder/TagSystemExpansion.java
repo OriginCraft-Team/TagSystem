@@ -22,13 +22,18 @@ public class TagSystemExpansion extends PlaceholderExpansion {
             case "prefix"       -> getTagText(PlayerTagManager.getPlayerPrefixTag(player));
             case "prefix_plain" -> getTagPlain(PlayerTagManager.getPlayerPrefixTag(player));
             case "suffix"       -> getTagText(PlayerTagManager.getPlayerSuffixTag(player));
-            case "suffix_plain" -> getTagPlain(PlayerTagManager.getPlayerSuffixTag(player));
-            default             -> null;
+            case "suffix_plain"    -> getTagPlain(PlayerTagManager.getPlayerSuffixTag(player));
+            case "prefix_weight"   -> getTagWeight(PlayerTagManager.getPlayerPrefixTag(player));
+            default                -> null;
         };
     }
 
     private String getTagText(Tag tag) {
         return tag != null ? tag.getText() : "";
+    }
+
+    private String getTagWeight(Tag tag) {
+        return tag != null ? String.valueOf(tag.getWeight()) : "0";
     }
 
     private String getTagPlain(Tag tag) {

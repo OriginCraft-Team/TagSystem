@@ -17,6 +17,7 @@ public final class Main extends JavaPlugin{
 	public static JavaPlugin instance;
 	public static Main plugin;
 	public static LuckPerms luckPerms;
+	private TagSystemExpansion placeholderExpansion;
 
 	@Override
 	public void onEnable(){
@@ -32,7 +33,8 @@ public final class Main extends JavaPlugin{
 		TagManager.loadTags();
 
 		if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-			new TagSystemExpansion().register();
+			placeholderExpansion = new TagSystemExpansion();
+			placeholderExpansion.register();
 		}
 
 		// Schedule tag permission check every minute (20 ticks * 60 seconds = 1200 ticks)
@@ -45,6 +47,8 @@ public final class Main extends JavaPlugin{
 
 	@Override
 	public void onDisable(){
-		// Plugin shutdown logic
+		if (placeholderExpansion != null) {
+			placeholderExpansion.unregister();
+		}
 	}
 }

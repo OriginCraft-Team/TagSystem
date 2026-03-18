@@ -74,6 +74,10 @@ public class ConfigHandler{
 		return dataConfig.getInt(key);
 	}
 
+	public int getInteger(String key, int defaultValue){
+		return dataConfig.getInt(key, defaultValue);
+	}
+
 	public Set<String> getKeys(String path){
 		ConfigurationSection section = dataConfig.getConfigurationSection(path);
 		if(section == null){

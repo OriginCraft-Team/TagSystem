@@ -20,8 +20,9 @@ public class Tag{
 	private TagType tagType;
 	private boolean hoverDescription;
 	private boolean showInGui;
+	private int weight;
 
-	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType, boolean hoverDescription, boolean showInGui){
+	public Tag(String id, String text, String description, Material iconMaterial, TagType tagType, boolean hoverDescription, boolean showInGui, int weight){
 		this.id = id;
 		this.text = text;
 		this.description = description;
@@ -29,6 +30,7 @@ public class Tag{
 		this.iconMaterial = iconMaterial;
 		this.hoverDescription = hoverDescription;
 		this.showInGui = showInGui;
+		this.weight = weight;
 		rebuildIcon();
 	}
 
@@ -94,6 +96,14 @@ public class Tag{
 
 	public boolean isShowInGui(){
 		return showInGui;
+	}
+
+	public int getWeight(){
+		return weight;
+	}
+
+	public void setWeight(int weight){
+		this.weight = weight;
 	}
 
 	public enum TagType{
