@@ -29,7 +29,13 @@ public class TagSystemExpansion extends PlaceholderExpansion {
     }
 
     private String getTagText(Tag tag) {
-        return tag != null ? tag.getText() : "";
+        if (tag == null) return "";
+        String text = tag.getText();
+        if (tag.isHoverDescription()) {
+            String description = tag.getDescription().replace("'", "\\'");
+            return "<hover:show_text:'" + description + "'>" + text + "</hover>";
+        }
+        return text;
     }
 
     private String getTagWeight(Tag tag) {
