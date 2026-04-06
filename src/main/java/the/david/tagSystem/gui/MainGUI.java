@@ -331,10 +331,12 @@ public class MainGUI{
 					List<Component> lore = new ArrayList<>();
 					lore.add(noItalic(typeBadge));
 					lore.add(Component.empty());
-					for(String line : tag.getDescription().split("\\n|\\\\n")){
-						lore.add(mm.deserialize(line).decoration(TextDecoration.ITALIC, false));
+					if(tag.isHoverDescription()){
+						for(String line : tag.getDescription().split("\\n|\\\\n")){
+							lore.add(mm.deserialize(line).decoration(TextDecoration.ITALIC, false));
+						}
+						lore.add(Component.empty());
 					}
-					lore.add(Component.empty());
 					lore.add(noItalic("<red>┌──────────────┐</red>"));
 					lore.add(noItalic("<red>│  🔒 尚未解鎖                   │</red>"));
 					lore.add(noItalic("<red>└──────────────┘</red>"));

@@ -48,12 +48,14 @@ public class Tag{
 		ItemStack item = new ItemStack(iconMaterial);
 		item.editMeta(itemMeta -> {
 			itemMeta.displayName(MiniMessage.miniMessage().deserialize(getText()).decoration(TextDecoration.ITALIC, false));
-			List<Component> descriptionLineList = new ArrayList<>();
-			for(String oneDescriptionLine : getDescription().split("\\n|\\\\n")){
-				descriptionLineList.add(MiniMessage.miniMessage().deserialize(oneDescriptionLine).decoration(TextDecoration.ITALIC, false));
-				DebugOutputHandler.sendDebugOutput(oneDescriptionLine);
+			if(hoverDescription){
+				List<Component> descriptionLineList = new ArrayList<>();
+				for(String oneDescriptionLine : getDescription().split("\\n|\\\\n")){
+					descriptionLineList.add(MiniMessage.miniMessage().deserialize(oneDescriptionLine).decoration(TextDecoration.ITALIC, false));
+					DebugOutputHandler.sendDebugOutput(oneDescriptionLine);
+				}
+				itemMeta.lore(descriptionLineList);
 			}
-			itemMeta.lore(descriptionLineList);
 		});
 		this.icon = item;
 	}
