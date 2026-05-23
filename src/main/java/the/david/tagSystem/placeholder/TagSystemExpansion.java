@@ -2,6 +2,7 @@ package the.david.tagSystem.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +22,10 @@ public class TagSystemExpansion extends PlaceholderExpansion {
         return switch (params) {
             case "prefix"       -> getTagText(PlayerTagManager.getPlayerPrefixTag(player));
             case "prefix_plain" -> getTagPlain(PlayerTagManager.getPlayerPrefixTag(player));
+            case "prefix_legacy" -> getTagLegacy(PlayerTagManager.getPlayerPrefixTag(player));
             case "suffix"       -> getTagText(PlayerTagManager.getPlayerSuffixTag(player));
             case "suffix_plain"    -> getTagPlain(PlayerTagManager.getPlayerSuffixTag(player));
+            case "suffix_legacy" -> getTagLegacy(PlayerTagManager.getPlayerSuffixTag(player));
             case "prefix_weight"   -> getTagWeight(PlayerTagManager.getPlayerPrefixTag(player));
             default                -> null;
         };
@@ -38,13 +41,24 @@ public class TagSystemExpansion extends PlaceholderExpansion {
         return text;
     }
 
-    private String getTagWeight(Tag tag) {
-        return tag != null ? String.valueOf(tag.getWeight()) : "0";
-    }
-
     private String getTagPlain(Tag tag) {
         if (tag == null) return "";
         return PlainTextComponentSerializer.plainText()
                 .serialize(MiniMessage.miniMessage().deserialize(tag.getText()));
     }
+
+    private String getTagLegacy(Tag tag) {
+        if (tag == null) return "";
+        // 將 MiniMessage 反序列化為 Component，再序列化為傳統顏色文字
+        return LegacyComponentSerializer.builder()
+                .character('§')
+                .hexColors()
+                .build()
+                .serialize(MiniMessage.miniMessage().deserialize(tag.getText()));
+    }
+
+    private String getTagWeight(Tag tag) {
+        return tag != null ? String.valueOf(tag.getWeight()) : "0";
+    }
+
 }
