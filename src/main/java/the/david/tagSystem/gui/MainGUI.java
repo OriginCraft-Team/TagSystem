@@ -53,6 +53,82 @@ public class MainGUI{
 		return new GuiItem(item, e -> e.setCancelled(true));
 	}
 
+	// ── Custom suffix button ──
+	private static GuiItem buildCustomSuffixButton(Player player, Tag playerSuffixTag, boolean hasPermission){
+		if(!hasPermission){
+			return buildLockedCustomSuffixButton();
+		}
+
+		String content = PlayerTagManager.getPlayerCustomSuffixContent(player);
+		boolean hasContent = content != null;
+		boolean isActive = playerSuffixTag != null
+				&& playerSuffixTag.getId().equals(PlayerTagManager.CUSTOM_SUFFIX_ID);
+
+		ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
+		item.editMeta(meta -> {
+			meta.displayName(noItalic("<gradient:gold:yellow>✦ 自訂後綴稱號 ✦</gradient>"));
+			List<Component> lore = new ArrayList<>();
+			lore.add(noItalic("<light_purple>▍</light_purple><dark_gray> 後綴 ━ 名稱後方</dark_gray>"));
+			lore.add(Component.empty());
+			if(hasContent){
+				lore.add(Component.text().append(noItalic("<gray>  目前 ▸ </gray>"))
+						.append(mm.deserialize(content)).decoration(TextDecoration.ITALIC, false).build());
+				lore.add(Component.empty());
+				if(isActive){
+					lore.add(noItalic("<green>┌──────────────┐</green>"));
+					lore.add(noItalic("<green>│  ✔  已裝備                    │</green>"));
+					lore.add(noItalic("<green>└──────────────┘</green>"));
+				}else{
+					lore.add(noItalic("<yellow>  ⚡ 左鍵裝備此稱號</yellow>"));
+				}
+				lore.add(noItalic("<yellow>  ✎ 右鍵重新編輯</yellow>"));
+			}else{
+				lore.add(noItalic("<gray>  尚未設定自訂後綴稱號</gray>"));
+				lore.add(Component.empty());
+				lore.add(noItalic("<gold>┌──────────────┐</gold>"));
+				lore.add(noItalic("<gold>│</gold> <yellow>☛ 點擊以自訂</yellow>                 <gold> │</gold>"));
+				lore.add(noItalic("<gold>└──────────────┘</gold>"));
+			}
+			meta.lore(lore);
+		});
+
+		return new GuiItem(item, e -> {
+			e.setCancelled(true);
+			Player p = (Player) e.getWhoClicked();
+			String c = PlayerTagManager.getPlayerCustomSuffixContent(p);
+			if(c != null && e.isLeftClick()){
+				PlayerTagManager.equipExistingCustomSuffix(p);
+				Bukkit.getScheduler().runTaskLater(Main.plugin, () -> showGUI(p), 1L);
+			}else{
+				p.closeInventory();
+				CustomSuffixDialog.open(p);
+			}
+		});
+	}
+
+	/** Locked display shown to players without the custom-suffix permission — mirrors the locked look of normal tags. */
+	private static GuiItem buildLockedCustomSuffixButton(){
+		ItemStack locked = new ItemStack(Material.GRAY_DYE);
+		locked.editMeta(im -> {
+			im.displayName(noItalic("<gradient:gold:yellow>✦ 自訂後綴稱號 ✦</gradient>"));
+			List<Component> lore = new ArrayList<>();
+			lore.add(noItalic("<light_purple>▍</light_purple><dark_gray> 後綴 ━ 名稱後方</dark_gray>"));
+			lore.add(Component.empty());
+			lore.add(noItalic("<gray>自由搭配顏色與樣式，打造你的專屬稱號。</gray>"));
+			lore.add(Component.empty());
+			lore.add(noItalic("<red>┌──────────────┐</red>"));
+			lore.add(noItalic("<red>│  🔒 尚未解鎖                   │</red>"));
+			lore.add(noItalic("<red>└──────────────┘</red>"));
+			lore.add(noItalic("<gold>  ☛ MVP 階級專屬功能</gold>"));
+			lore.add(noItalic("<dark_gray>  VIP 階級可另外加購解鎖</dark_gray>"));
+			im.lore(lore);
+		});
+		return new GuiItem(locked, e -> {
+			e.setCancelled(true);
+			e.getWhoClicked().sendMessage(noItalic("<red>✘ 你尚未解鎖自訂後綴稱號。此為 <gold>MVP</gold> 階級專屬功能，<gold>VIP</gold> 階級可另外加購解鎖。</red>"));
+		});
+	}
+
 	// ── Entry point ──
 	public static void showGUI(Player player){
 		showGUI(player,
@@ -344,6 +420,14 @@ public class MainGUI{
 			}
 			tagItems.add(guiItem);
 		});
+
+		// ═══════════════ Custom suffix button (置於所有稱號最後) ═══════════════
+		// 不分有無權限一律顯示；無權限時呈現鎖定樣式。只受類型篩選影響（後綴）。
+		boolean canCustomSuffix = player.hasPermission("tagsystem.tag." + PlayerTagManager.CUSTOM_SUFFIX_ID);
+		boolean passTypeFilter = typeFilter == TypeFilter.ALL || typeFilter == TypeFilter.SUFFIX;
+		if(passTypeFilter){
+			tagItems.add(buildCustomSuffixButton(player, playerSuffixTag, canCustomSuffix));
+		}
 
 		tagPane.populateWithGuiItems(tagItems);
 

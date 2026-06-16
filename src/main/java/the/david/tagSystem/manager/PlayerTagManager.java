@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.query.QueryOptions;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import the.david.tagSystem.impl.Tag;
 
@@ -14,6 +15,13 @@ import java.util.Optional;
 import static the.david.tagSystem.Main.luckPerms;
 
 public class PlayerTagManager{
+	// ── Custom suffix ──
+	/** Reserved tag id used for the player-defined custom suffix. Must not collide with any real tag in TagConfig.yml. */
+	public static final String CUSTOM_SUFFIX_ID = "custom_suffix";
+	/** Permission node prefix that stores the custom suffix MiniMessage content in its key. Persistent, never auto-removed. */
+	public static final String CONTENT_NODE_PREFIX = "tagsystem.custom_suffix.";
+	/** Fixed hover text shown on every custom suffix. */
+	public static final String FIXED_HOVER = "這是玩家自訂稱號（MVP 階級專屬功能，VIP 階級可另外加購解鎖）";
 	public static void setPlayerTag(Player player, Tag tag){
 		if(!TagManager.hasTagPermission(player, tag)){
 			player.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED));
@@ -44,11 +52,72 @@ public class PlayerTagManager{
 
 	public static Tag getPlayerSuffixTag(Player player){
 		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-		return user.getNodes().stream()
+		Optional<String> suffixId = user.getNodes().stream()
 				.filter(n -> n.getKey().startsWith("tagsystem.suffix.tagid."))
 				.findFirst()
-				.map(n -> TagManager.getTag(n.getKey().replaceFirst("tagsystem\\.suffix\\.tagid\\.", "")))
+				.map(n -> n.getKey().replaceFirst("tagsystem\\.suffix\\.tagid\\.", ""));
+		if(suffixId.isEmpty()) return null;
+		if(suffixId.get().equals(CUSTOM_SUFFIX_ID)){
+			return buildCustomSuffixTag(player);
+		}
+		return TagManager.getTag(suffixId.get());
+	}
+
+	/** Reads the persisted custom suffix MiniMessage content, or {@code null} if the player has none. */
+	public static String getPlayerCustomSuffixContent(Player player){
+		User user = luckPerms.getPlayerAdapter(Player.class).getUser(player);
+		return user.getNodes().stream()
+				.filter(n -> n.getKey().startsWith(CONTENT_NODE_PREFIX))
+				.findFirst()
+				.map(n -> n.getKey().substring(CONTENT_NODE_PREFIX.length()))
 				.orElse(null);
+	}
+
+	/**
+	 * Builds a synthetic {@link Tag} representing the player's currently equipped custom suffix.
+	 * The content comes from the persisted content node and the hover is forced to {@link #FIXED_HOVER}.
+	 * If the in-use pointer exists but no content node is found, the stale pointer is cleared and {@code null} returned.
+	 */
+	private static Tag buildCustomSuffixTag(Player player){
+		String content = getPlayerCustomSuffixContent(player);
+		if(content == null){
+			clearPlayerSuffixTag(player);
+			return null;
+		}
+		return new Tag(CUSTOM_SUFFIX_ID, content, FIXED_HOVER, Material.NAME_TAG, Tag.TagType.SUFFIX, true, false, 0);
+	}
+
+	/**
+	 * Persists {@code content} as the player's custom suffix and equips it (occupying the suffix slot,
+	 * mutually exclusive with normal suffixes). The content node is persistent and survives loss of eligibility.
+	 */
+	public static void setPlayerCustomSuffix(Player player, String content){
+		if(!player.hasPermission("tagsystem.tag." + CUSTOM_SUFFIX_ID)){
+			player.sendMessage(Component.text("您沒有自訂後綴稱號的權限！", NamedTextColor.RED));
+			return;
+		}
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+			user.data().clear(e -> e.getKey().startsWith(CONTENT_NODE_PREFIX));
+			user.data().add(Node.builder(CONTENT_NODE_PREFIX + content).build());
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
+			user.data().add(Node.builder("tagsystem.suffix.tagid." + CUSTOM_SUFFIX_ID).build());
+		});
+	}
+
+	/** Re-equips the already-saved custom suffix without modifying the stored content. */
+	public static void equipExistingCustomSuffix(Player player){
+		if(!player.hasPermission("tagsystem.tag." + CUSTOM_SUFFIX_ID)){
+			player.sendMessage(Component.text("您沒有自訂後綴稱號的權限！", NamedTextColor.RED));
+			return;
+		}
+		if(getPlayerCustomSuffixContent(player) == null){
+			player.sendMessage(Component.text("您尚未設定自訂後綴稱號。", NamedTextColor.RED));
+			return;
+		}
+		luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> {
+			user.data().clear(e -> e.getKey().startsWith("tagsystem.suffix.tagid"));
+			user.data().add(Node.builder("tagsystem.suffix.tagid." + CUSTOM_SUFFIX_ID).build());
+		});
 	}
 
 	public static Tag getPlayerPrefixTag(Player player){

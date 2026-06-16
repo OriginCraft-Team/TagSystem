@@ -24,6 +24,7 @@ public class CommandManager implements CommandExecutor{
 		subCommands.put("manage set description {id} {description}", new SetTagDescription());
 		subCommands.put("manage set weight {id} {value}", new SetTagWeight());
 		subCommands.put("set {id}", new SetTag());
+		subCommands.put("customsuffix {content}", new CustomSuffix());
 		subCommands.put("reload", new Reload());
 		subCommands.put("menu", new Menu());
 		subCommands.put("get suffix", new GetSuffixTag());
