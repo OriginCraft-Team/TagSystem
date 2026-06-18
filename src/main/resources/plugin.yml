@@ -1,5 +1,5 @@
 name: TagSystem
-version: '1.6.1'
+version: '${project.version}'
 main: the.david.tagSystem.Main
 api-version: '1.21'
 depend: [PlaceholderAPI]
