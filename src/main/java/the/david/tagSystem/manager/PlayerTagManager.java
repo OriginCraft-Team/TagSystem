@@ -10,7 +10,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import the.david.tagSystem.impl.Tag;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static the.david.tagSystem.Main.luckPerms;
 
@@ -22,6 +24,13 @@ public class PlayerTagManager{
 	public static final String CONTENT_NODE_PREFIX = "tagsystem.custom_suffix.";
 	/** Fixed hover text shown on every custom suffix. */
 	public static final String FIXED_HOVER = "這是玩家自訂稱號（MVP 階級專屬功能，VIP 階級可另外加購解鎖）";
+	/**
+	 * Cache of synthetic custom-suffix tags keyed by their MiniMessage content. A custom suffix tag is fully
+	 * determined by its content plus the fixed hover, so identical content can safely share one immutable Tag
+	 * instance across all players. This avoids rebuilding the icon (ItemStack + MiniMessage parsing) on every
+	 * placeholder request, and is bounded by the number of distinct custom suffix strings rather than players.
+	 */
+	private static final Map<String, Tag> CUSTOM_SUFFIX_CACHE = new ConcurrentHashMap<>();
 	public static void setPlayerTag(Player player, Tag tag){
 		if(!TagManager.hasTagPermission(player, tag)){
 			player.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED));
@@ -84,7 +93,8 @@ public class PlayerTagManager{
 			clearPlayerSuffixTag(player);
 			return null;
 		}
-		return new Tag(CUSTOM_SUFFIX_ID, content, FIXED_HOVER, Material.NAME_TAG, Tag.TagType.SUFFIX, true, false, 0);
+		return CUSTOM_SUFFIX_CACHE.computeIfAbsent(content,
+				c -> new Tag(CUSTOM_SUFFIX_ID, c, FIXED_HOVER, Material.NAME_TAG, Tag.TagType.SUFFIX, true, false, 0));
 	}
 
 	/**

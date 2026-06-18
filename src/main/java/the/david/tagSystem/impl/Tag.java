@@ -6,7 +6,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import the.david.tagSystem.util.DebugOutputHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,6 @@ public class Tag{
 			List<Component> descriptionLineList = new ArrayList<>();
 			for(String oneDescriptionLine : getDescription().split("\\n|\\\\n")){
 				descriptionLineList.add(MiniMessage.miniMessage().deserialize(oneDescriptionLine).decoration(TextDecoration.ITALIC, false));
-				DebugOutputHandler.sendDebugOutput(oneDescriptionLine);
 			}
 			itemMeta.lore(descriptionLineList);
 		});
