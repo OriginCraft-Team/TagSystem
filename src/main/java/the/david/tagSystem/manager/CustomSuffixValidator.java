@@ -39,7 +39,7 @@ public final class CustomSuffixValidator{
 	);
 
 	/** MiniMessage 原始字串長度上限（玩家實際輸入）。 */
-	public static final int MAX_SOURCE_LEN = 50;
+	public static final int MAX_SOURCE_LEN = 170;
 	/** 處理後可見字數上限（扣除標籤後的純文字）。 */
 	public static final int MAX_VISIBLE_LEN = 10;
 
