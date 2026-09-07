@@ -153,6 +153,12 @@ public class MainGUI{
 
 		ChestGui gui = new ChestGui(6, "✦ 稱號系統 ✦");
 
+		// ═══════════════ 全域鎖定：純展示選單，禁止任何物品移動 ═══════════════
+		// InventoryFramework 預設不會取消事件；未被 GuiItem 覆蓋的空格（分頁未填滿的稱號區）
+		// 會讓玩家用 shift 點擊 / 拖曳 / 雙擊收集把物品搬進背包，故在此一律取消。
+		gui.setOnGlobalClick(event -> event.setCancelled(true));
+		gui.setOnGlobalDrag(event -> event.setCancelled(true));
+
 		// ═══════════════ Background (全黑玻璃) ═══════════════
 		StaticPane bg = new StaticPane(0, 0, 9, 6, Pane.Priority.LOWEST);
 		for(int x = 0; x < 9; x++) bg.addItem(filler(), x, 0);   // top
